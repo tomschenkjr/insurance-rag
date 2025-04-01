@@ -4,7 +4,7 @@ This module implements a RAG (Retrieval Augmented Generation) pipeline that:
 2. Chunks the text into smaller segments
 3. Creates embeddings for the chunks
 4. Indexes the embeddings for similarity search
-5. Uses Ollama with DeepSeek-1:14B for question answering
+5. Uses Ollama with DeepSeek-R1:14B for question answering
 """
 
 from PyPDF2 import PdfReader
@@ -56,7 +56,7 @@ def extract_text_from_pdf(folder_path: str) -> list[tuple[str, str]]:
 
 def create_embeddings_index(documents: List[Tuple[str, str]], 
                           chunk_size: int = 500,
-                          chunk_overlap: int = 100) -> Tuple[faiss.Index, List[dict]]:
+                          chunk_overlap: int = 100) -> Tuple[faiss.Index, List[dict], List[str]]:
     """
     Create embeddings and FAISS index from the document chunks.
     
@@ -69,6 +69,7 @@ def create_embeddings_index(documents: List[Tuple[str, str]],
         Tuple containing:
         - FAISS index for similarity search
         - List of metadata dictionaries for each chunk
+        - List of text chunks
     """
     # Initialize the text splitter
     text_splitter = RecursiveCharacterTextSplitter(
@@ -95,15 +96,15 @@ def create_embeddings_index(documents: List[Tuple[str, str]],
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(np.array(embeddings))
     
-    return index, metadata
+    return index, metadata, all_chunks
 
-def query_ollama(prompt: str, model: str = "deepseek:1.14b") -> str:
+def query_ollama(prompt: str, model: str = "deepseek-r1:14B") -> str:
     """
     Query the Ollama API with DeepSeek model.
     
     Args:
         prompt: The prompt to send to the model
-        model: The model to use (default: deepseek:1.14b)
+        model: The model to use (default: deepseek-r1:14B)
         
     Returns:
         str: The model's response
@@ -126,7 +127,7 @@ def search_and_answer(query: str,
                      index: faiss.Index, 
                      metadata: List[Dict], 
                      chunks: List[str],
-                     model: str = "deepseek:1.14b",
+                     model: str = "deepseek-r1:14B",
                      k: int = 3) -> str:
     """
     Search for relevant chunks and generate an answer using the LLM.
@@ -142,9 +143,8 @@ def search_and_answer(query: str,
     Returns:
         str: The model's answer
     """
-    # Create embedding for the query
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    query_embedding = model.encode([query])[0]
+    # Create embedding for the query using the same model instance
+    query_embedding = SentenceTransformer("all-MiniLM-L6-v2").encode([query])[0]
     
     # Search for similar chunks
     distances, indices = index.search(np.array([query_embedding]), k)
@@ -153,7 +153,7 @@ def search_and_answer(query: str,
     context = "\n\n".join([chunks[i] for i in indices[0]])
     
     # Create prompt with context and query
-    prompt = f"""Based on the following context, please answer the question. If the answer cannot be found in the context, say so.
+    prompt = f"""Based on the following context, please answer the question. If the answer cannot be found in the context, say so. You are very knowledgeable. An expert. Think and respond with confidence.
 
 Context:
 {context}
@@ -164,6 +164,43 @@ Answer:"""
     
     # Get answer from Ollama
     return query_ollama(prompt, model)
+
+def chat_loop(index: faiss.Index, metadata: List[Dict], chunks: List[str]) -> None:
+    """
+    Interactive chat loop for asking questions about the documents.
+    
+    Args:
+        index: FAISS index containing embeddings
+        metadata: List of metadata for each chunk
+        chunks: List of text chunks
+    """
+    print("\nChat started! Type 'exit' to end the conversation.")
+    print("Ask any questions about your documents.\n")
+    
+    while True:
+        try:
+            # Get user input
+            query = input("\nYour question: ").strip()
+            
+            # Check for exit command
+            if query.lower() in ['exit', 'quit', 'bye']:
+                print("\nGoodbye!")
+                break
+                
+            # Skip empty queries
+            if not query:
+                continue
+                
+            # Get and display answer
+            answer = search_and_answer(query, index, metadata, chunks)
+            print("\nAnswer:", answer)
+            
+        except KeyboardInterrupt:
+            print("\n\nGoodbye!")
+            break
+        except Exception as e:
+            print(f"\nError: {str(e)}")
+            print("Please try again or type 'exit' to quit.")
 
 def main():
     """
@@ -186,20 +223,20 @@ def main():
     print(f"Found {len(pdf_files)} PDF files in {docs_path}")
     
     # Process PDF documents
+    print("\nProcessing documents...")
     docs = extract_text_from_pdf(docs_path)
     
     # Create embeddings and index
-    index, metadata = create_embeddings_index(docs)
+    print("Creating embeddings and search index...")
+    index, metadata, chunks = create_embeddings_index(docs)
     
-    print(f"Processed {len(docs)} documents")
-    print(f"Created {len(metadata)} chunks")
-    print(f"Index shape: {index.d}")
+    print(f"\nProcessing complete!")
+    print(f"- Processed {len(docs)} documents")
+    print(f"- Created {len(metadata)} chunks")
+    print(f"- Index shape: {index.d}")
     
-    # Example query
-    query = "What are the key points from the documents?"
-    answer = search_and_answer(query, index, metadata, chunks)
-    print(f"\nQuestion: {query}")
-    print(f"Answer: {answer}")
+    # Start interactive chat
+    chat_loop(index, metadata, chunks)
 
 if __name__ == "__main__":
     main() 

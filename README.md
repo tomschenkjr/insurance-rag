@@ -49,18 +49,50 @@ python rag.py
 The system will:
 - Process all PDF files in the `docs` directory
 - Create embeddings and a search index
-- Run an example query
+- Start an interactive chat session
 
-### Example Output
+### Interactive Chat Interface
+
+Once the system is running, you can:
+- Ask questions about your documents
+- Get immediate answers based on the document content
+- Type 'exit', 'quit', or 'bye' to end the session
+- Press Ctrl+C at any time to exit
+
+Example interaction:
 ```
 Found 3 PDF files in docs
-Processed 3 documents
-Created 45 chunks
-Index shape: 384
 
-Question: What are the key points from the documents?
+Processing documents...
+Creating embeddings and search index...
+
+Processing complete!
+- Processed 3 documents
+- Created 45 chunks
+- Index shape: 384
+
+Chat started! Type 'exit' to end the conversation.
+Ask any questions about your documents.
+
+Your question: What are the key points from the documents?
+
 Answer: Based on the provided documents, the key points include...
+
+Your question: Can you summarize the main topics?
+
+Answer: The documents cover several key areas including...
+
+Your question: exit
+
+Goodbye!
 ```
+
+### Tips for Better Questions
+- Be specific in your questions
+- Ask about particular sections or topics
+- Request summaries or key points
+- Ask for comparisons or relationships between topics
+- Request clarification on specific terms or concepts
 
 ## Project Structure
 
@@ -83,6 +115,7 @@ Answer: Based on the provided documents, the key points include...
 3. **Question Answering**:
    - Finds relevant text chunks using similarity search
    - Uses DeepSeek-1:14B via Ollama to generate answers
+   - Provides interactive chat interface for continuous questioning
 
 ## Customization
 
@@ -172,4 +205,24 @@ This allows you to:
 
 ## License
 
-[Your chosen license] 
+MIT License
+
+Copyright (c) 2025 Tom Schenk Jr.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. 
