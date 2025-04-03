@@ -1,6 +1,6 @@
-# Insurance RAG System with DeepSeek
+# Insurance Document Classification System
 
-This project implements a RAG (Retrieval Augmented Generation) system that processes PDF documents and uses DeepSeek-R1:14B via Ollama to answer questions about their contents. The system is specifically designed to work with insurance-related documents.
+This project implements a machine learning-based system for automatically classifying and organizing insurance-related PDF documents. The system uses a combination of text extraction, TF-IDF vectorization, and SVM classification to categorize documents into specific insurance types and subcategories.
 
 ## Prerequisites
 
@@ -22,124 +22,119 @@ cd insurance-rag
 pip install -r requirements.txt
 ```
 
-3. Install and start Ollama:
-   - Follow the installation instructions at [Ollama's website](https://ollama.ai/)
-   - Start the Ollama service
-   - Pull the DeepSeek model:
-```bash
-ollama pull deepseek-r1:14B
-```
+## Project Structure
 
-## Setup
-
-1. Create a directory named "Current" in your project root:
-```bash
-mkdir Current
-```
-
-2. Place your PDF files in the `Current` directory or any subdirectory of `Current`.
+- `classify-and-move.py`: Main script for document classification and organization
+- `training_data.json`: Training data for the classification model
+- `input_docs/`: Directory for placing PDF documents to be processed
+- `organized_insurance_docs/`: Output directory for classified documents
 
 ## Usage
 
-1. Run the RAG system:
+### 1. Prepare Training Data
+
+The system requires training data to learn how to classify documents. The training data should be organized in the following structure:
+
+```
+training_data/
+├── Health_insurance/
+│   ├── document1.pdf
+│   └── ...
+├── Cell_phone_insurance/
+│   └── ...
+├── Condo_insurance/
+│   └── ...
+├── Umbrella_insurance/
+│   └── ...
+├── Business_travel_insurance/
+│   └── ...
+├── Watch_insurance/
+│   └── ...
+├── Life_insurance/
+│   └── ...
+├── Dental_insurance/
+│   └── ...
+├── Disability_insurance/
+│   └── ...
+├── Vision_insurance/
+│   └── ...
+└── Credit_Cards/
+    ├── Chase/
+    │   ├── Sapphire_Reserve/
+    │   ├── Freedom_Unlimited/
+    │   └── Freedom_Flex/
+    ├── American_Express/
+    │   ├── Platinum/
+    │   ├── Gold/
+    │   └── Green/
+    ├── Citi/
+    │   ├── Double_Cash_Card/
+    │   └── Custom_Cash/
+    ├── Discover/
+    │   ├── It/
+    │   └── Miles/
+    └── Capital_One/
+        ├── Venture/
+        └── Quicksilver/
+```
+
+### 2. Run the Classification Script
+
+To process and organize documents:
+
 ```bash
-python rag.py
+python classify-and-move.py
 ```
 
-The system will:
-- Process all PDF files in the `Current` directory and its subdirectories
-- Create embeddings and a search index
-- Start an interactive chat session
+The script will:
+1. Check for training data
+2. Create necessary directories if they don't exist
+3. Process PDF files in the `input_docs` folder
+4. Organize documents into appropriate categories in `organized_insurance_docs`
 
-### Interactive Chat Interface
+## Document Organization
 
-Once the system is running, you can:
-- Ask questions about your documents
-- Get immediate answers based on the document content
-- Type 'exit', 'quit', or 'bye' to end the session
-- Press Ctrl+C at any time to exit
+Documents are organized by:
+1. Main insurance category
+2. For credit cards: issuer and specific card type
+3. Year (Current and previous 3 years)
 
-Example interaction:
+Example output structure:
 ```
-Found 12 PDF files in Current directories
-
-Processing documents...
-Creating embeddings and search index...
-
-Processing complete!
-- Processed 12 documents
-- Created 180 chunks
-- Index shape: 384
-
-Chat started! Type 'exit' to end the conversation.
-Ask any questions about your documents.
-
-Your question: What are the key points from the documents?
-
-Answer: Based on the provided documents, the key points include...
-
-Your question: Can you summarize the main topics?
-
-Answer: The documents cover several key areas including...
-
-Your question: exit
-
-Goodbye!
+organized_insurance_docs/
+├── health/
+│   ├── Current/
+│   ├── 2024/
+│   ├── 2023/
+│   └── 2022/
+├── credit_card/
+│   ├── chase/
+│   │   ├── sapphire_reserve/
+│   │   │   ├── Current/
+│   │   │   ├── 2024/
+│   │   │   ├── 2023/
+│   │   │   └── 2022/
+│   │   └── ...
+│   └── ...
+└── ...
 ```
 
-### Tips for Better Questions
-- Be specific in your questions
-- Ask about particular sections or topics
-- Request summaries or key points
-- Ask for comparisons or relationships between topics
-- Request clarification on specific terms or concepts
+## Features
 
-## Project Structure
-
-- `rag.py`: Main script containing the RAG pipeline
-- `requirements.txt`: Python package dependencies
-- `Current/`: Directory containing PDF files to process
-- `index/`: Directory containing saved FAISS indices and metadata (created after first run)
-
-## How it Works
-
-1. **Document Processing**:
-   - Extracts text from PDF files in the `Current` directory and its subdirectories
-   - Splits text into manageable chunks
-   - Preserves document structure and source information
-
-2. **Embedding Creation**:
-   - Uses SentenceTransformer to create embeddings
-   - Builds a FAISS index for efficient similarity search
-
-3. **Question Answering**:
-   - Finds relevant text chunks using similarity search
-   - Uses DeepSeek-R1:14B via Ollama to generate answers
-   - Provides interactive chat interface for continuous questioning
-   - Includes source document information in responses
+- Automatic text extraction from PDF documents
+- Machine learning-based classification
+- Special handling for credit card documents
+- Year-based organization
+- Duplicate file handling
+- Detailed processing logs
 
 ## Customization
 
-You can customize various aspects of the system by modifying parameters in `rag.py`:
-
-1. **Text Chunking**:
-```python
-# In create_embeddings_index function
-chunk_size = 500      # Size of each text chunk
-chunk_overlap = 100   # Number of characters to overlap between chunks
-```
-
-2. **Search Parameters**:
-```python
-# In search_and_answer function
-k = 3  # Number of chunks to retrieve for each query
-```
-
-3. **Model Selection**:
-```python
-# In query_ollama function
-model = "deepseek-r1:14B"  # Change to other Ollama models if needed
-```
+You can customize the classification by modifying:
+1. Categories in the `categories` list
+2. Credit card issuers and card types in `credit_card_issuers`
+3. Training data structure
+4. Model parameters (TF-IDF and SVM settings)
 
 ## License
 
