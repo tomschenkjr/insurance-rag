@@ -1,12 +1,12 @@
-# PDF RAG System with DeepSeek
+# Insurance RAG System with DeepSeek
 
-This project implements a RAG (Retrieval Augmented Generation) system that processes PDF documents and uses DeepSeek-1:14B via Ollama to answer questions about their contents.
+This project implements a RAG (Retrieval Augmented Generation) system that processes PDF documents and uses DeepSeek-R1:14B via Ollama to answer questions about their contents. The system is specifically designed to work with insurance-related documents.
 
 ## Prerequisites
 
 - Python 3.8 or higher
 - Ollama installed on your system
-- Sufficient disk space and RAM (DeepSeek-1:14B is a large model)
+- Sufficient disk space and RAM (DeepSeek-R1:14B is a large model)
 - At least 16GB RAM recommended for optimal performance
 
 ## Installation
@@ -27,17 +27,17 @@ pip install -r requirements.txt
    - Start the Ollama service
    - Pull the DeepSeek model:
 ```bash
-ollama pull deepseek:1.14b
+ollama pull deepseek-r1:14B
 ```
 
 ## Setup
 
-1. Create a directory for your PDF documents:
+1. Create a directory named "Current" in your project root:
 ```bash
-mkdir docs
+mkdir Current
 ```
 
-2. Place your PDF files in the `docs` directory.
+2. Place your PDF files in the `Current` directory or any subdirectory of `Current`.
 
 ## Usage
 
@@ -47,7 +47,7 @@ python rag.py
 ```
 
 The system will:
-- Process all PDF files in the `docs` directory
+- Process all PDF files in the `Current` directory and its subdirectories
 - Create embeddings and a search index
 - Start an interactive chat session
 
@@ -61,14 +61,14 @@ Once the system is running, you can:
 
 Example interaction:
 ```
-Found 3 PDF files in docs
+Found 12 PDF files in Current directories
 
 Processing documents...
 Creating embeddings and search index...
 
 Processing complete!
-- Processed 3 documents
-- Created 45 chunks
+- Processed 12 documents
+- Created 180 chunks
 - Index shape: 384
 
 Chat started! Type 'exit' to end the conversation.
@@ -98,15 +98,15 @@ Goodbye!
 
 - `rag.py`: Main script containing the RAG pipeline
 - `requirements.txt`: Python package dependencies
-- `docs/`: Directory containing PDF files to process
+- `Current/`: Directory containing PDF files to process
 - `index/`: Directory containing saved FAISS indices and metadata (created after first run)
 
 ## How it Works
 
 1. **Document Processing**:
-   - Extracts text from PDF files
+   - Extracts text from PDF files in the `Current` directory and its subdirectories
    - Splits text into manageable chunks
-   - Preserves document structure
+   - Preserves document structure and source information
 
 2. **Embedding Creation**:
    - Uses SentenceTransformer to create embeddings
@@ -114,8 +114,9 @@ Goodbye!
 
 3. **Question Answering**:
    - Finds relevant text chunks using similarity search
-   - Uses DeepSeek-1:14B via Ollama to generate answers
+   - Uses DeepSeek-R1:14B via Ollama to generate answers
    - Provides interactive chat interface for continuous questioning
+   - Includes source document information in responses
 
 ## Customization
 
@@ -137,77 +138,14 @@ k = 3  # Number of chunks to retrieve for each query
 3. **Model Selection**:
 ```python
 # In query_ollama function
-model = "deepseek:1.14b"  # Change to other Ollama models if needed
+model = "deepseek-r1:14B"  # Change to other Ollama models if needed
 ```
-
-## Index Persistence
-
-The system supports saving and loading the FAISS index and metadata:
-
-1. **Saving the Index**:
-```python
-# After creating the index
-faiss.write_index(index, "index/faiss.index")
-with open("index/metadata.json", "w") as f:
-    json.dump(metadata, f)
-```
-
-2. **Loading the Index**:
-```python
-# Before querying
-index = faiss.read_index("index/faiss.index")
-with open("index/metadata.json", "r") as f:
-    metadata = json.load(f)
-```
-
-This allows you to:
-- Process documents once and reuse the index
-- Share the index with others
-- Save processing time on subsequent runs
-
-## Troubleshooting
-
-1. **Ollama Connection Issues**:
-   - Ensure Ollama is running (`ollama serve`)
-   - Check if the service is accessible at `http://localhost:11434`
-   - Verify the DeepSeek model is pulled (`ollama list`)
-   - Check system logs for any Ollama errors
-   - Ensure firewall isn't blocking local connections
-
-2. **PDF Processing Issues**:
-   - Verify PDF files are in the `docs` directory
-   - Check file extensions are `.pdf`
-   - Ensure PDFs are not corrupted or password-protected
-   - Check PDFs are readable (not scanned images)
-   - Verify file permissions allow reading
-
-3. **Memory and Performance Issues**:
-   - Reduce chunk size in `create_embeddings_index`
-   - Process fewer documents at once
-   - Ensure sufficient RAM is available
-   - Monitor system resources during processing
-   - Consider using a swap file if RAM is limited
-   - Process documents in batches for large collections
-
-4. **Embedding and Index Issues**:
-   - Check if the index directory exists and has write permissions
-   - Verify enough disk space for index storage
-   - Monitor embedding model download progress
-   - Check for CUDA/GPU errors if using GPU acceleration
-   - Verify FAISS index integrity
-
-5. **Common Error Messages and Solutions**:
-   - "Connection refused": Ollama service not running
-   - "No PDF files found": Check docs directory
-   - "MemoryError": Reduce chunk size or process fewer documents
-   - "CUDA out of memory": Reduce batch size or use CPU only
-   - "Index not found": Rebuild the index
 
 ## License
 
 MIT License
 
-Copyright (c) 2025 Tom Schenk Jr.
+Copyright (c) 2024 Tom Schenk Jr
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
